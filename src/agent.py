@@ -17,9 +17,10 @@ def summarize_document(text: str) -> str:
     return llm.summarize(text)
 
 
-def answer_question(question: str, top_k: int = 4):
-    """Tool: RAG over the indexed corpus. Returns (answer, retrieved_chunks)."""
-    hits = vectorstore.query(question, top_k=top_k)
+def answer_question(question: str, session_collection=None, top_k: int = 4):
+    """Tool: RAG over the indexed corpus (plus an optional session collection).
+    Returns (answer, retrieved_chunks)."""
+    hits = vectorstore.query_merged(question, session_collection=session_collection, top_k=top_k)
     context = "\n\n---\n\n".join(h["text"] for h in hits)
     response = llm.answer(question, context)
     return response, hits

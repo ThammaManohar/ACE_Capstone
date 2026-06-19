@@ -4,4 +4,4 @@ __pycache__/
 .env
 chroma_db/
 data/raw/
-.streamlit/
+.streamlit/secrets.toml

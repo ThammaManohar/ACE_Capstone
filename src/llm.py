@@ -54,9 +54,24 @@ QUESTION:
 ANSWER:"""
 
 
+RELEVANCE_PROMPT = """Decide if the following text is a legal document (e.g. a court \
+judgment, legal filing, contract, statute, or similar). Answer with exactly one word: \
+YES or NO.
+
+TEXT:
+{text}
+
+ANSWER:"""
+
+
 def summarize(text: str) -> str:
     return _generate(SUMMARY_PROMPT.format(text=text[:12000]))
 
 
 def answer(question: str, context: str) -> str:
     return _generate(QA_PROMPT.format(context=context[:12000], question=question))
+
+
+def is_legal_document(text: str) -> bool:
+    response = _generate(RELEVANCE_PROMPT.format(text=text[:6000]))
+    return response.strip().upper().startswith("YES")
