@@ -1,0 +1,307 @@
+:root {
+  --bg: oklch(1.000 0.000 0);
+  --surface: oklch(0.970 0.004 230);
+  --border: oklch(0.880 0.006 230);
+  --ink: oklch(0.200 0.010 230);
+  --muted: oklch(0.480 0.012 230);
+  --primary: oklch(0.450 0.086 230);
+  --primary-hover: oklch(0.400 0.090 230);
+  --primary-ink: oklch(1.000 0.000 0);
+  --accent: oklch(0.550 0.130 70);
+  --danger: oklch(0.470 0.150 25);
+  --focus-ring: oklch(0.450 0.086 230 / 0.45);
+
+  --font-display: "Fraunces", serif;
+  --font-body: "Work Sans", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 6rem;
+}
+
+.app-header {
+  margin-bottom: 2.5rem;
+  animation: rise-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.app-header h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(2rem, 1.6rem + 1.5vw, 2.6rem);
+  letter-spacing: -0.015em;
+  margin: 0 0 0.45rem 0;
+  text-wrap: balance;
+}
+
+.app-header p {
+  color: var(--muted);
+  font-size: 1rem;
+  margin: 0;
+  max-width: 46ch;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.75rem;
+}
+
+.tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.65rem 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.97rem;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 180ms ease-out;
+}
+
+.tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab.is-active {
+  color: var(--ink);
+}
+
+.tab.is-active::after {
+  transform: scaleX(1);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.is-active {
+  display: block;
+  animation: rise-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-header, .tab-panel, .answer-panel { animation: none !important; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form elements */
+.field-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.panel-intro {
+  color: var(--muted);
+  margin: 0 0 1.25rem 0;
+}
+
+.text-input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.text-input::placeholder { color: oklch(0.620 0.010 230); }
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.btn-primary {
+  margin-top: 1rem;
+  padding: 0.65rem 1.4rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--primary-ink);
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, transform 120ms ease-out;
+}
+
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn-primary:active:not(:disabled) { transform: translateY(1px); }
+
+.btn-primary:disabled {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Status / scope / errors */
+.status-line {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 0.85rem;
+}
+
+.error-line {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-top: 0.85rem;
+}
+
+.scope-pill:not([hidden]) {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.32rem 0.85rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+/* Answer / summary panels */
+.answer-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.35rem 1.5rem;
+  margin-top: 1.25rem;
+  animation: rise-in 220ms ease-out both;
+}
+
+.answer-panel h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0 0 0.55rem 0;
+}
+
+.answer-panel p {
+  margin: 0;
+  line-height: 1.65;
+}
+
+/* Sources */
+.sources-block {
+  margin-top: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sources-block summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.sources-block summary::-webkit-details-marker { display: none; }
+
+.sources-block summary::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 0.5rem;
+  transition: transform 180ms ease-out;
+}
+
+.sources-block[open] summary::before {
+  transform: rotate(90deg);
+}
+
+#sources-list {
+  padding: 0 1rem 0.5rem;
+}
+
+.source-item {
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.source-item .label {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.source-item .snippet {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+  line-height: 1.55;
+}
+
+/* Upload zone */
+.upload-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 1.1rem 1.3rem;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out;
+}
+
+.upload-zone:hover {
+  border-color: var(--primary);
+}
+
+.upload-zone__label {
+  font-weight: 500;
+}
+
+.upload-zone__hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}

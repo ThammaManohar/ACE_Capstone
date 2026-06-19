@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Legal Document Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="app-header">
+      <h1>Legal Document Assistant</h1>
+      <p>Ask a question about Indian case law, or upload a document of your own.</p>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" role="tab" aria-selected="true" data-tab="ask">Ask</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="upload">Upload a document</button>
+    </nav>
+
+    <section class="tab-panel is-active" data-panel="ask">
+      <div id="scope-pill" class="scope-pill" hidden></div>
+
+      <label class="field-label" for="question-input">Your question</label>
+      <input
+        id="question-input"
+        class="text-input"
+        type="text"
+        placeholder="e.g. What counts as valid consideration in a contract?"
+      />
+
+      <button id="ask-button" class="btn-primary">Ask</button>
+
+      <p id="ask-status" class="status-line" hidden></p>
+
+      <div id="answer-panel" class="answer-panel" hidden>
+        <h4>Answer</h4>
+        <p id="answer-text"></p>
+      </div>
+
+      <details id="sources-block" class="sources-block" hidden>
+        <summary>Sources</summary>
+        <div id="sources-list"></div>
+      </details>
+    </section>
+
+    <section class="tab-panel" data-panel="upload">
+      <p class="panel-intro">
+        Upload a legal document (PDF or .txt) to get a summary and ask follow-up questions about it.
+      </p>
+
+      <label class="upload-zone" id="upload-zone" for="file-input">
+        <input id="file-input" type="file" accept=".pdf,.txt" hidden />
+        <span class="upload-zone__label">Choose a file</span>
+        <span class="upload-zone__hint">PDF or TXT</span>
+      </label>
+
+      <p id="file-name" class="status-line" hidden></p>
+
+      <button id="summarize-button" class="btn-primary" disabled>Summarize</button>
+
+      <p id="upload-status" class="status-line" hidden></p>
+      <p id="upload-error" class="error-line" hidden></p>
+
+      <div id="summary-panel" class="answer-panel" hidden>
+        <h4>Summary</h4>
+        <p id="summary-text"></p>
+      </div>
+      <p id="upload-success" class="status-line" hidden></p>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -56,9 +56,20 @@ def new_session_collection():
 
 
 def query_merged(text: str, session_collection=None, top_k: int = 4):
-    """Query the base corpus and, if present, a session collection; merge by distance."""
-    hits = query_collection(get_collection(), text, top_k=top_k)
-    if session_collection is not None and session_collection.count() > 0:
-        hits += query_collection(session_collection, text, top_k=top_k)
+    """Query the base corpus and, if present, a session collection.
+
+    Reserves half of top_k for the session collection so a single uploaded
+    document's chunks aren't crowded out by chance matches in the much larger
+    base corpus when ranking purely by raw distance.
+    """
+    has_session = session_collection is not None and session_collection.count() > 0
+    if not has_session:
+        return query_collection(get_collection(), text, top_k=top_k)
+
+    session_k = max(1, top_k // 2)
+    base_k = top_k - session_k
+
+    hits = query_collection(get_collection(), text, top_k=base_k)
+    hits += query_collection(session_collection, text, top_k=session_k)
     hits.sort(key=lambda h: h["distance"])
-    return hits[:top_k]
+    return hits

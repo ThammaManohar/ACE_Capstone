@@ -28,10 +28,10 @@ Contrast checked: ink-on-bg ≈ 14:1, muted-on-bg ≈ 5.3:1, primary-ink-on-prim
 
 ## Typography
 
-- Display/headings: **Source Serif 4** (serif, scholarly, calm authority) — weights 500/600 only.
-- Body/UI: **Inter** (sans, neutral, highly legible at small sizes).
+- Display/headings: **Fraunces** (soft, characterful serif with optical-size axis — scholarly without being stuffy; distinct from the generic-serif default). Weights 500/600, optical size set high for headings.
+- Body/UI: **Work Sans** (humanist sans, warmer and more distinctive than Inter/system sans, still highly legible at small sizes).
 - No third family. No monospace needed in the visible UI.
-- Scale: 14 / 16 / 20 / 28 / 36px, ratio ≈1.3-1.4 between steps. Headings get weight contrast, not size alone.
+- Scale: 14 / 16 / 20 / 28 / 38px, ratio ≈1.3-1.4 between steps. Headings get weight contrast, not size alone.
 - No uppercase body copy. No tracked eyebrows.
 
 ## Layout
