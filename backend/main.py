@@ -1,9 +1,11 @@
 import json
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.agent import answer_question, answer_question_stream, summarize_document
 from src.llm import is_legal_document
@@ -122,3 +124,7 @@ async def upload(file: UploadFile = File(...), session_id: str = Form(...)):
     SESSIONS[session_id] = session_collection
 
     return {"relevant": True, "summary": summary, "filename": name}
+
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")

@@ -1,4 +1,7 @@
-const API_BASE = window.API_BASE || "http://localhost:8011";
+// Relative by default: the backend now serves this frontend itself (same origin),
+// both locally and on Hugging Face Spaces. Override window.API_BASE before this
+// script loads only if you're running the frontend from a separate static server.
+const API_BASE = window.API_BASE || "";
 
 function getSessionId() {
   let id = localStorage.getItem("lda_session_id");
