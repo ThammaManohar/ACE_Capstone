@@ -26,6 +26,14 @@ def answer_question(question: str, session_collection=None, top_k: int = 4):
     return response, hits
 
 
+def answer_question_stream(question: str, session_collection=None, top_k: int = 4):
+    """Same as answer_question, but returns (retrieved_chunks, token_generator) so the
+    caller can show retrieved sources immediately while the answer streams in."""
+    hits = vectorstore.query_merged(question, session_collection=session_collection, top_k=top_k)
+    context = "\n\n---\n\n".join(h["text"] for h in hits)
+    return hits, llm.stream_answer(question, context)
+
+
 def route(user_input: str):
     """Decide which tool to call for a free-form input. Returns (tool_name, result)."""
     if user_input.lower().startswith("summarize:"):

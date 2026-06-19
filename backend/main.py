@@ -1,13 +1,16 @@
+import json
 import uuid
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from src.agent import answer_question, summarize_document
+from src.agent import answer_question, answer_question_stream, summarize_document
 from src.llm import is_legal_document
 from src.uploads import chunks_for_upload, extract_text
 from src.vectorstore import count, new_session_collection, upsert_chunks
+
+SOURCES_MARKER = "\x00SOURCES\x00"
 
 app = FastAPI(title="Legal Document Assistant API")
 
@@ -64,6 +67,32 @@ def ask(question: str = Form(...), session_id: str | None = Form(None)):
         for h in hits
     ]
     return {"answer": answer_text, "sources": sources}
+
+
+def _source_label(doc_id: str) -> str:
+    return "Your uploaded document" if doc_id == "session_upload" else f"Case document {doc_id.replace('doc_', '#')}"
+
+
+@app.post("/api/ask/stream")
+def ask_stream(question: str = Form(...), session_id: str | None = Form(None)):
+    if not question.strip():
+        raise HTTPException(400, "Question is required.")
+    if count() == 0:
+        raise HTTPException(503, "The document index has not been built yet.")
+
+    session_collection = SESSIONS.get(session_id) if session_id else None
+    hits, token_stream = answer_question_stream(question, session_collection=session_collection)
+
+    sources = [
+        {"label": _source_label(h["doc_id"]), "snippet": h["text"][:220].strip()} for h in hits
+    ]
+
+    def generate():
+        for token in token_stream:
+            yield token
+        yield SOURCES_MARKER + json.dumps(sources)
+
+    return StreamingResponse(generate(), media_type="text/plain")
 
 
 @app.post("/api/upload")

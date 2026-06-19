@@ -13,6 +13,13 @@ function setHidden(el, hidden) {
   el.hidden = hidden;
 }
 
+function stripMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/(?<!\w)\*(.*?)\*(?!\w)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "");
+}
+
 // --- Tabs ---
 const tabs = document.querySelectorAll(".tab");
 const panels = document.querySelectorAll(".tab-panel");
@@ -66,31 +73,57 @@ async function askQuestion() {
   askStatus.textContent = "Searching the indexed documents...";
   setHidden(askStatus, false);
 
+  const SOURCES_MARKER = "\x00SOURCES\x00";
+
   try {
     const form = new FormData();
     form.append("question", question);
     form.append("session_id", getSessionId());
 
-    const res = await fetch(`${API_BASE}/api/ask`, { method: "POST", body: form });
+    const res = await fetch(`${API_BASE}/api/ask/stream`, { method: "POST", body: form });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || "Something went wrong while asking.");
     }
-    const data = await res.json();
 
-    setHidden(askStatus, true);
-    answerText.textContent = data.answer;
-    setHidden(answerPanel, false);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let revealedAnswer = false;
 
-    if (data.sources && data.sources.length) {
-      sourcesList.innerHTML = "";
-      data.sources.forEach((s) => {
-        const item = document.createElement("div");
-        item.className = "source-item";
-        item.innerHTML = `<div class="label">${s.label}</div><div class="snippet">${s.snippet}…</div>`;
-        sourcesList.appendChild(item);
-      });
-      setHidden(sourcesBlock, false);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const markerIndex = buffer.indexOf(SOURCES_MARKER);
+      const visibleText = markerIndex === -1 ? buffer : buffer.slice(0, markerIndex);
+
+      if (visibleText && !revealedAnswer) {
+        setHidden(askStatus, true);
+        setHidden(answerPanel, false);
+        revealedAnswer = true;
+      }
+      answerText.textContent = stripMarkdown(visibleText);
+
+      if (markerIndex !== -1) {
+        const sourcesJson = buffer.slice(markerIndex + SOURCES_MARKER.length);
+        try {
+          const sources = JSON.parse(sourcesJson);
+          if (sources.length) {
+            sourcesList.innerHTML = "";
+            sources.forEach((s, i) => {
+              const item = document.createElement("div");
+              item.className = "source-item";
+              item.innerHTML = `<div class="citation-mark">§${i + 1}</div><div><div class="label">${s.label}</div><div class="snippet">${s.snippet}…</div></div>`;
+              sourcesList.appendChild(item);
+            });
+            setHidden(sourcesBlock, false);
+          }
+        } catch {
+          // marker arrived but JSON not fully buffered yet; next chunk will complete it
+        }
+      }
     }
   } catch (e) {
     askStatus.textContent = e.message;
@@ -163,7 +196,7 @@ summarizeButton.addEventListener("click", async () => {
         "This doesn't appear to be a legal document, so it hasn't been summarized or added to your session.";
       setHidden(uploadStatus, false);
     } else {
-      summaryText.textContent = data.summary;
+      summaryText.textContent = stripMarkdown(data.summary);
       setHidden(summaryPanel, false);
 
       localStorage.setItem("lda_uploaded_name", data.filename);
