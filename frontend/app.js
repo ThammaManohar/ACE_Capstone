@@ -225,8 +225,10 @@ fetch(`${API_BASE}/api/status`)
   .then((data) => {
     if (!data.indexed_chunks) {
       askStatus.textContent =
-        "The document index has not been built yet. Run scripts/build_index.py first.";
-      askStatus.classList.add("error-line");
+        data.index_state === "building"
+          ? "Setting up the document index for the first time — this can take a few minutes. Refresh shortly."
+          : "The document index has not been built yet. Run scripts/build_index.py first.";
+      askStatus.classList.remove("error-line");
       setHidden(askStatus, false);
       askButton.disabled = true;
     }

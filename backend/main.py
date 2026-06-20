@@ -1,4 +1,5 @@
 import json
+import threading
 import uuid
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.agent import answer_question, answer_question_stream, summarize_document
+from src.ingest import chunk_documents, load_documents, save_docs_cache
 from src.llm import is_legal_document
 from src.uploads import chunks_for_upload, extract_text
 from src.vectorstore import count, new_session_collection, upsert_chunks
@@ -26,6 +28,32 @@ app.add_middleware(
 # session_id -> chroma ephemeral collection (in-memory, never persisted)
 SESSIONS: dict[str, object] = {}
 
+INDEX_STATUS = {"state": "pending"}  # pending -> building -> ready | failed
+
+
+def _build_index_in_background():
+    if count() > 0:
+        INDEX_STATUS["state"] = "ready"
+        return
+    INDEX_STATUS["state"] = "building"
+    try:
+        docs = load_documents()
+        save_docs_cache(docs)
+        chunks = chunk_documents(docs)
+        upsert_chunks(chunks)
+        INDEX_STATUS["state"] = "ready"
+    except Exception as e:
+        INDEX_STATUS["state"] = "failed"
+        INDEX_STATUS["error"] = str(e)
+
+
+@app.on_event("startup")
+def start_index_build():
+    # Runs in a background thread so the server can bind to its port and pass
+    # platform health checks immediately, instead of blocking startup on the
+    # multi-minute dataset download + embedding step.
+    threading.Thread(target=_build_index_in_background, daemon=True).start()
+
 
 class UploadedFileLike:
     """Adapter so FastAPI's UploadFile fits src.uploads.extract_text's expected interface."""
@@ -40,7 +68,7 @@ class UploadedFileLike:
 
 @app.get("/api/status")
 def status():
-    return {"indexed_chunks": count()}
+    return {"indexed_chunks": count(), "index_state": INDEX_STATUS["state"]}
 
 
 @app.post("/api/session")
