@@ -34,17 +34,31 @@ INDEX_STATUS = {"state": "pending"}  # pending -> building -> ready | failed
 def _build_index_in_background():
     if count() > 0:
         INDEX_STATUS["state"] = "ready"
+        print("Index already built, skipping.", flush=True)
         return
     INDEX_STATUS["state"] = "building"
     try:
+        print("Loading documents from ninadn/indian-legal ...", flush=True)
         docs = load_documents()
+        print(f"Loaded {len(docs)} documents.", flush=True)
         save_docs_cache(docs)
+
+        print("Chunking documents ...", flush=True)
         chunks = chunk_documents(docs)
-        upsert_chunks(chunks)
+        print(f"Created {len(chunks)} chunks. Embedding and upserting into Chroma ...", flush=True)
+
+        batch_size = 64
+        for i in range(0, len(chunks), batch_size):
+            upsert_chunks(chunks[i : i + batch_size])
+            done = min(i + batch_size, len(chunks))
+            print(f"Indexed {done}/{len(chunks)} chunks", flush=True)
+
         INDEX_STATUS["state"] = "ready"
+        print(f"Done. Vector store now has {count()} chunks indexed.", flush=True)
     except Exception as e:
         INDEX_STATUS["state"] = "failed"
         INDEX_STATUS["error"] = str(e)
+        print(f"Index build failed: {e}", flush=True)
 
 
 @app.on_event("startup")

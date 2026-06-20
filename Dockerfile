@@ -9,6 +9,10 @@ COPY . .
 
 # Hugging Face Spaces expects the app to listen on port 7860.
 ENV PORT=7860
+ENV PYTHONUNBUFFERED=1
+# Free-tier CPU can be slow; index a smaller subset so first startup finishes
+# in a reasonable time. Override in Space settings if you want the full 300.
+ENV MAX_DOCS=120
 EXPOSE 7860
 
 # Start immediately so platform health checks pass right away; the vector index
